@@ -1,0 +1,22 @@
+# Création d'une image avec Ansible pré-installé.
+FROM projetgl/jessie-mini:latest
+RUN apt-get -y update
+RUN echo "Installation des paquets pour ANSIBLE"
+RUN apt-get install -y python-yaml python-jinja2 python-apt git time
+RUN git clone http://github.com/ansible/ansible.git /opt/ansible
+RUN apt-get clean autoclean
+RUN apt-get autoremove -y
+WORKDIR /opt/ansible
+RUN git submodule update --init --recursive
+ENV PATH /opt/ansible/bin:$PATH
+ENV ANSIBLE_LIBRARY /opt/ansible/library
+ENV PYTHONPATH /opt/ansible/lib:$PYTHON_PATH
+ADD reaper /opt/reaper
+{% set ports = [] -%}
+{%- for p in ripper.containers %}
+    {%- set _ = ports.append(p.ports.split(':') | first) -%}
+{% endfor -%}
+EXPOSE {{ " ".join(ports) }}
+WORKDIR /opt/reaper
+ENTRYPOINT time -p ansible-playbook site.yml -e TARGET=$TARGET -c local -i hosts -vv & /bin/bash
+CMD ["/bin/bash"]

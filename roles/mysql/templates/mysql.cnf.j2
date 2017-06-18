@@ -1,0 +1,54 @@
+[client]
+default-character-set = utf8 
+port        = 3306
+socket      = /var/run/mysqld/mysqld.sock
+
+[mysqld_safe]
+socket      = /var/run/mysqld/mysqld.sock
+nice        = 0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+
+[mysqld]
+character-set-server  = utf8 
+collation-server      = utf8_general_ci 
+user        = mysql
+pid-file    = /var/run/mysqld/mysqld.pid
+socket      = /var/run/mysqld/mysqld.sock
+port        = 3306
+basedir     = /usr
+datadir     = /var/lib/mysql
+tmpdir      = /tmp
+lc-messages-dir = /usr/share/mysql
+skip-external-locking
+bind-address        = 0.0.0.0
+log_error = /var/log/mysql/error.log
+expire_logs_days    = 10
+max_binlog_size         = 100M
+slow-query-log = 1
+slow-query-log-file = /var/log/mysql/mysql-slow.log
+long_query_time = 1
+
+
+max_connections=512
+open_files_limit = 100000
+query_cache_size=0
+query_cache_type=0
+binlog_format=ROW
+sync_binlog=0
+default-storage-engine=innodb
+
+# Optimisations InnoDB
+innodb_autoinc_lock_mode=2
+innodb_flush_log_at_trx_commit=2
+innodb_locks_unsafe_for_binlog=1
+innodb_doublewrite=0
+innodb_buffer_pool_size = {{ (ansible_memtotal_mb * 0.75) | int }}M
+innodb_flush_method=O_DIRECT
+innodb_buffer_pool_instances={{ ansible_processor_vcpus * 2 }}
+innodb_log_file_size=256M
+innodb_log_buffer_size=5M
+innodb_thread_concurrency=0
+innodb_write_io_threads=64
+innodb_read_io_threads=64
+innodb_file_per_table=1

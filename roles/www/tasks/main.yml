@@ -1,0 +1,129 @@
+---
+- name: Installing Apache.
+  apt:
+      name=apache2
+  notify:
+    - restart apache
+
+- name: Configuring Apache.
+  template:
+    src=apache2.conf.j2
+    dest=/etc/apache2/apache2.conf
+  notify:
+    - restart apache
+
+- name: Configuring Apache security.
+  template:
+    src=security.conf.j2
+    dest=/etc/apache2/conf-available/security.conf
+  notify:
+    - restart apache
+
+- name: Configuring main website.
+  template:
+    src=main.conf.j2
+    dest=/etc/apache2/sites-available/main.conf
+  notify:
+    - restart apache
+
+- name: Creating TLS directory.
+  file:
+    dest=/etc/apache2/tls
+    state=directory
+
+- name: Creating main website directory.
+  file:
+    dest=/var/www
+    state=directory
+    owner=www-data
+    group=www-data
+
+- name: Generating TLS keys.
+  shell: openssl genrsa -out /etc/apache2/tls/www.key {{ www.keysize }}
+    creates=/etc/apache2/tls/www.key
+  notify:
+    - restart apache
+
+- name: Generating CSR.
+  shell: openssl req -new -sha256 -subj "/C=FR/ST=Paris/L=Paris/O=sk4.nz/OU=sk4.nz TLS/CN=projet.sk4.nz" -key /etc/apache2/tls/www.key -out /etc/apache2/tls/www.csr
+    creates=/etc/apache2/tls/www.csr
+  notify:
+      - restart apache
+
+- name: Generating TLS certificates.
+  shell: openssl x509 -req -days 3650 -in /etc/apache2/tls/www.csr -signkey /etc/apache2/tls/www.key -out /etc/apache2/tls/www.crt 
+    creates=/etc/apache2/tls/www.crt
+  notify:
+    - restart apache
+
+- name: Generating Diffie-Hellman.
+  shell: openssl dhparam -dsaparam -out /etc/apache2/tls/www-dh.pem {{ www.keysize }}
+    creates=/etc/apache2/tls/www-dh.pem
+  notify:
+    - restart apache
+
+- name: Fixing mime.types error.
+  file:
+    src=/etc/mime.types
+    dest=/etc/apache2/mime.types
+    state=link
+
+- name: Activate Apache modules.
+  apache2_module:
+    state=present
+    name={{ item }}
+  with_items:
+    - ssl
+    - headers
+  notify:
+    - restart apache
+
+- name: Removing default configuration.
+  shell: a2disconf {{ item }}
+  register: disconf
+  changed_when: '"reload" in disconf.stdout'
+  with_items:
+    - apache2-doc
+    - charset
+    - localized-error-pages
+    - other-vhosts-access-log
+    - serve-cgi-bin
+    - javascript-common
+  failed_when: false
+  notify:
+    - restart apache
+
+- name: Desactivating HTTP compression.
+  shell: a2dismod -f deflate
+  register: dismod
+  changed_when: '"restart" in dismod.stdout'
+  notify:
+    - restart apache
+
+- name: Desactivating default website.
+  shell: a2dissite 000-default
+  register: dissite
+  changed_when: '"reload" in dissite.stdout'
+  notify:
+    - restart apache
+
+- name: Adding welcome index.
+  template:
+      src=index.html.j2
+      dest=/var/www/index.html
+      owner=www-data
+
+- name: Activating main website.
+  shell: a2ensite main
+  register: ensite
+  changed_when: '"reload" in ensite.stdout'
+  notify:
+    - restart apache
+
+- name: Enabling Apache service.
+  service:
+    name=apache2
+    enabled=yes
+    state=started
+  changed_when: false
+

@@ -1,0 +1,4 @@
+---
+- name: Installing Java.
+  apt:
+      name=openjdk-7-jre

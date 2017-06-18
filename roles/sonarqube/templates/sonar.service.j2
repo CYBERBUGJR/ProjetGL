@@ -1,0 +1,11 @@
+[Unit]
+Description=SonarQube
+After=tlp-init.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/local/sonar/bin/linux-x86-64/sonar.sh
+
+[Install]
+WantedBy=multi-user.target

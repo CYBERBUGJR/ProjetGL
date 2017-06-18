@@ -1,0 +1,10 @@
+---
+sonar:
+    workspace: /opt
+    download_url: http://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-5.5.zip
+    version_directory: sonarqube-5.5
+    download_md5: 70b90a644dc6a7ad6389f76bb2b413d4
+    sql_username: sonar
+    sql_password: s0n4r
+    sql_port: "3306"
+    sql_database: sonar

@@ -1,0 +1,19 @@
+#jinja2:  variable_start_string: "[%" , variable_end_string: "%]"
+---
+- name: REAPER LOADING
+  hosts: all
+  pre_tasks:
+    - name: debug
+      debug: msg='Image will be characterized to > {{ TARGET }} <'
+
+  roles:
+    - { role: www, when: "'www' in TARGET" }
+    - { role: mariadb, when: "'mariadb' in TARGET" }
+    - { role: mysql, when: "'mysql' in TARGET" }
+    - { role: sonarqube, when: "'sonarqube' in TARGET" }
+    - { role: redmine, when: "'redmine' in TARGET" }
+    - { role: phpmyadmin, when: "'phpmyadmin' in TARGET" }
+
+  post_tasks:
+    - name: debug
+      debug: msg='Image was characterized to > {{ TARGET }} <'
