@@ -1,5 +1,5 @@
 ---
-- name: [REAPER] - Installation des paquets..
+- name: "[REAPER] - Installation des paquets.."
   apt:
       name={{ item }}
   with_items:
@@ -19,27 +19,27 @@
 
 
 
-- name: [REAPER] Installation de PIP ...
+- name: "[REAPER] Installation de PIP ..."
   get_url:
       url=https://bootstrap.pypa.io/get-pip.py
       dest=/opt/get-pip.py
 
-- name: [REAPER] [PIP] - Démarrage Installation.
+- name: "[REAPER] [PIP] - Démarrage Installation."
   shell: python get-pip.py
       chdir=/opt/
   when: pipinstall.stdout == ""
 
-- name: [REAPER] [PIP] - Installation d'Ansible.
+- name: "[REAPER] [PIP] - Installation d'Ansible."
   pip:
     name=ansible
     state=latest
 
-- name: [REAPER] [ANSIBLE] - Création répertoire ansible.
+- name: "[REAPER] [ANSIBLE] - Création répertoire ansible."
   file:
     dest=/opt/projetgl/reaper
     state=directory
 
-- name: [REAPER] [ANSIBLE] - Envoi des rôles Ansible.
+- name: "[REAPER] [ANSIBLE] - Envoi des rôles Ansible."
   synchronize:
     src=./{{ item }}
     dest=/opt/projetgl/reaper
@@ -48,12 +48,12 @@
     - group_vars
   register: playbooks
 
-- name: [REAPER] [ANSIBLE] - Ajout de l'inventaire Ansible.
+- name: "[REAPER] [ANSIBLE] - Ajout de l'inventaire Ansible."
   template:
       src=hosts.j2
       dest=/opt/projetgl/reaper/hosts
 
-- name: [REAPER] [ANSIBLE] - Ajout des playbooks.
+- name: "[REAPER] [ANSIBLE] - Ajout des playbooks."
   template:
     src=site.yml.j2
     dest=/opt/projetgl/reaper/site.yml
@@ -63,15 +63,15 @@
 # A Python library for the Docker Engine API.
 # It lets you do anything the docker command does, but from within Python apps – run containers, manage containers, manage Swarms, etc.
 
-- name: [REAPER] [DOCKER] [PIP] - Installation de docker-py.
+- name: "[REAPER] [DOCKER] [PIP] - Installation de docker-py."
   pip:
       name=docker-py
       state=latest
 
-- name: [REAPER] [DOCKER]- Adding docker.io PGP key.
+- name: "[REAPER] [DOCKER]- Adding docker.io PGP key."
   shell: curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 
-- name: [REAPER] [DOCKER]- Adding docker.io APT list.
+- name: "[REAPER] [DOCKER]- Adding docker.io APT list."
   apt_repository:
     repo='deb https://download.docker.com/linux/debian jessie stable''
     state=present
@@ -84,45 +84,45 @@
 
 #Installation du packet docker-ce (COMMUNITY EDITITION) avec apt update.
 
-- name: [REAPER] [DOCKER]- Installation paquets.
+- name: "[REAPER] [DOCKER]- Installation paquets."
   apt:
     name=docker-ce
     update_cache=yes
 
-- name: [REAPER] [DOCKER] => CONSTRUCTION - Téléchargement docker-utils depuis GitHub.
+- name: "[REAPER] [DOCKER] => CONSTRUCTION - Téléchargement docker-utils depuis GitHub."
   git:
     repo=https://github.com/docker/docker.git
     dest=/opt/docker-git
 
-- name: [REAPER] [DOCKER] => CONSTRUCTION  -  Vérification des images docker.
+- name: "[REAPER] [DOCKER] => CONSTRUCTION  -  Vérification des images docker."
 
   shell: docker images
   register: isimgpresent
   changed_when: false
 
 #Création de l'image docker debian jessie si celle ci n'est pas déja présente dans la liste des images.
-- name: [REAPER] [DOCKER] => CONSTRUCTION - Création d'une image debian jessie.
+- name: "[REAPER] [DOCKER] => CONSTRUCTION - Création d'une image debian jessie."
   shell: /opt/docker-git/contrib/mkimage.sh -t projetgl/jessie-mini debootstrap --variant=minbase --include=locales jessie
   when: "'projetgl/jessie-mini' not in isimgpresent.stdout"
 
-- name: [REAPER] [DOCKER] => CONSTRUCTION - Création du répertoire de l'image.
+- name: "[REAPER] [DOCKER] => CONSTRUCTION - Création du répertoire de l'image."
   file:
     dest=/opt/projetgl/
     state=directory
 
-- name: [REAPER] [DOCKER] => CONSTRUCTION - Envoie de la template Dockerfile.
+- name: "[REAPER] [DOCKER] => CONSTRUCTION - Envoie de la template Dockerfile."
   template:
     src=Dockerfile.j2
     dest=/opt/projetgl/Dockerfile
   register: dockerfile
 
-- name: [REAPER] [DOCKER] => CONSTRUCTION - Création de l'image de base.
-shell: docker build -t projetgl/jessie-base .
+- name: "[REAPER] [DOCKER] => CONSTRUCTION - Création de l'image de base."
+  shell: docker build -t projetgl/jessie-base .
     chdir=/opt/projetgl/
   when: "{{ playbooks.changed or mainsite.changed or dockerfile.changed }}"
   register: buildbase
 
-- name: [REAPER] [DOCKER] [RUN] - Arret des containers (modif de la conf)..
+- name: "[REAPER] [DOCKER] [RUN] - Arret des containers (modif de la conf).."
   docker:
     image: projetgl/jessie-base
     name: projet{{ item.target }}
@@ -130,7 +130,7 @@ shell: docker build -t projetgl/jessie-base .
   with_items: "{{ ripper.containers }}"
   when: buildbase.changed
 
-- name: [REAPER] [DOCKER] [RUN] - Démarrage des containers..
+- name: "[REAPER] [DOCKER] [RUN] - Démarrage des containers.."
   docker:
     name: projet{{ item.target }}
     image: projetgl/jessie-base
@@ -140,10 +140,10 @@ shell: docker build -t projetgl/jessie-base .
       - "{{ item.ports }}"
     env:
       TARGET: "{{ item.target }}"
-  with_items: "{{ ripper.containers }}"
+      with_items: "{{ ripper.containers }}"
 
 
-- name: [REAPER] [DOCKER] [ANSIBLE] - Ajotu des nouveaux containers dans l'inventaire Ansible.
+- name: "[REAPER] [DOCKER] [ANSIBLE] - Ajout des nouveaux containers dans l'inventaire Ansible."
   add_host:
     name=projet{{ item.target }}
     groups=docker
@@ -151,7 +151,7 @@ shell: docker build -t projetgl/jessie-base .
   changed_when: false
   with_items: "{{ ripper.containers }}"
 
-- name: [REAPER] [DOCKER] [RUN] - Waiting the end of deployment.
+- name: "[REAPER] [DOCKER] [RUN] - Waiting the end of deployment."
   wait_for:
     port="{{ item.ports.split(':') | first }}"
     delay=1
@@ -159,10 +159,10 @@ shell: docker build -t projetgl/jessie-base .
     host="{{ ripper.host }}"
   with_items: "{{ ripper.containers }}"
 '''
-- name: [REAPER] [DOCKER] [RUN] - Commit du containeur docker.
+- name: "[REAPER] [DOCKER] [RUN] - Commit du containeur docker."
   shell: docker commit -a "Benjamin CALVET et Jonathan BENHAMEL"  ripper{{ item.target }} projetgl/{{ item.target}}
   with_items: "{{ ripper.containers }}"
 
-- name: [REAPER] - FIN.
+- name: "[REAPER] - FIN."
   debug:
     msg="Reaper has done his job !"

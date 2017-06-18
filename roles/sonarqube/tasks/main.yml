@@ -66,7 +66,7 @@
       - { regexp: '^sonar.jdbc.url', line: 'sonar.jdbc.url=jdbc:mysql://{{ ripper.host }}:{{ sonar.sql_port }}/{{ sonar.sql_database }}?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance' }
 
 
-  #- name: [SONARQUBE] ...
+  # - name: [SONARQUBE] ...
   #  file:
   #    src=/usr/local/sonar/bin/linux-x86-64/sonar.sh
   #    dest="{{ item }}"

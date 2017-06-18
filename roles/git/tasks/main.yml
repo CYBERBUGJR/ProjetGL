@@ -1,0 +1,20 @@
+---
+- name: " [GIT] Téléchargement paquet git-core."
+  apt:
+    update_cache=yes
+   	name=git-core
+   	state=present
+
+
+- name:  "[GIT] Création répertoire."
+  file:
+    path=/opt/git/
+    state=directory
+
+
+- name:  "[GIT] Création de la repository."
+  git:
+    repo=ssh://localhost//opt/git/repository/
+    clone=no
+    bare=yes
+    accept_hostkey=yes
