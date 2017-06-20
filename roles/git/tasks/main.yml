@@ -5,16 +5,32 @@
    	name=git-core
    	state=present
 
+- name: "[GIT] Ajout de l'utilisateur git."
+  user:
+    name=git
+    shell=/usr/bin/git-shell
+    home=/srv/git
+- name: "[GIT] Envoi des clés des utilisateurs"
+  template:
+    src=keys.j2
+    dest=/opt/git/keys
+    owner=git
+    group=git
+    mode="u=rw,g=rw,o=rw"
 
+- name: "[GIT] Ajout des clés des utilisateurs dans authorized-keys"
+  authorized_key:
+    user=git
+    state=present
+    key="{{ lookup('file', '/opt/git/keys') }}"
 - name:  "[GIT] Création répertoire."
   file:
-    path=/opt/git/
+    path=/opt/git/repository
     state=directory
 
 
 - name:  "[GIT] Création de la repository."
-  git:
-    repo=ssh://localhost//opt/git/repository/
-    clone=no
-    bare=yes
-    accept_hostkey=yes
+  command: git init --bare
+    args=
+      chdir=/opt/git/repository
+      creates=/opt/git/repository/HEAD
