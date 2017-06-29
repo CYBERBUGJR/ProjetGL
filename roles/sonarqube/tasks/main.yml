@@ -1,5 +1,5 @@
 ---
-- name: [SONARQUBE] Installation des dépendances.
+- name: "[SONARQUBE] Installation des dépendances."
   apt:
       name={{ item }}
   with_items:
@@ -8,65 +8,67 @@
       - python-mysqldb
       - coreutils
       - unzip
+- name:  "[SONARQUBE] AJout projetgl.lord.io dans /etc/hosts"
+  shell: echo "146.19.17.232	   projetgl.lord.io" >> /etc/hosts
 
-- name:  [SONARQUBE] En attente de la Base de Données.
+- name:  "[SONARQUBE] En attente de la Base de Données."
   wait_for:
-    host="{{ rippet.host }}"
+    host={{ ripper.host }}
     port=3306
     delay=0
     timeout=3000
-    #search_regex="mysql_native_password"
+        #search_regex="mysql_native_password"
 
-- name:  [SONARQUBE] Création de la base de données pour Sonar.
+- name:  "[SONARQUBE] Création de la base de données pour Sonar."
   mysql_db:
     name="{{ sonar.sql_database }}"
     state=present
-    login_host="{{ ripper.host }}"
+    login_host={{ ripper.host }}
     login_user=root
-    login_password="{{ mariadb.root_pass }}"
+    login_password="{{ mysql.root_pass }}"
 
-- name: [SONARQUBE] Création de l'user sonar dans la BDD.
+- name: "[SONARQUBE] Création de l'user sonar dans la BDD."
   mysql_user:
     name="{{ sonar.sql_username }}"
     priv="{{ sonar.sql_database }}.*:ALL"
     password="{{ sonar.sql_password }}"
-    host="{{ ripper.host }}"
-    login_host="{{ ripper.host }}"
+    host=%
+    login_host={{ ripper.host }}
     login_user=root
-    login_password="{{ mariadb.root_pass }}"
+    login_password="{{ mysql.root_pass }}"
     # A changer...
 
-- name: [SONARQUBE] Téléchargement de sonar.
+- name: "[SONARQUBE] Téléchargement de sonar."
   get_url:
     url="{{ sonar.download_url }}"
     dest="{{ sonar.workspace }}/{{ sonar.version_directory }}.zip"
 #    checksum=md5:"{{ sonar.download_md5 }}"
 
-- name: [SONARQUBE] Unzip de Sonar.
+- name: "[SONARQUBE] Unzip de Sonar."
   unarchive:
     src="{{ sonar.workspace }}/{{ sonar.version_directory }}.zip"
     dest=/usr/local/
     copy=no
     creates=/usr/local/sonar/COPYING
 
-- name:  [SONARQUBE] Déplacement répertoire Sonar.
+- name:  "[SONARQUBE] Déplacement répertoire Sonar."
   shell: >
     mv /usr/local/{{ sonar.version_directory }} /usr/local/sonar
     creates=/usr/local/sonar/COPYING
 
-- name: [SONARQUBE] Configuration JBDC pour mysql.
+- name: "[SONARQUBE] Configuration JBDC pour mysql."
   lineinfile:
     dest=/usr/local/sonar/conf/sonar.properties
     regexp="{{ item.regexp }}"
     line="{{ item.line }}"
-  notify: restart sonar
+  # notify: restart sonar
   with_items:
       - { regexp: '^sonar.jdbc.username', line: 'sonar.jdbc.username={{ sonar.sql_username }}' }
       - { regexp: '^sonar.jdbc.password', line: 'sonar.jdbc.password={{ sonar.sql_password }}' }
       - { regexp: '^sonar.jdbc.url', line: 'sonar.jdbc.url=jdbc:mysql://{{ ripper.host }}:{{ sonar.sql_port }}/{{ sonar.sql_database }}?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance' }
 
 
-  # - name: [SONARQUBE] ...
+  # - name: [SONARQUBE] ...""
   #  file:
   #    src=/usr/local/sonar/bin/linux-x86-64/sonar.sh
   #    dest="{{ item }}"
@@ -89,15 +91,15 @@
   #          # Short-Description: SonarQube
   #          # Description:       SonarQube init script
   #          ### END INIT INFO
-- name: [SONARQUBE] Ajout du service SonarQube
+- name: "[SONARQUBE] Ajout du service SonarQube"
   template:
     src=sonar.service.j2
     dest=/etc/systemd/system/sonar.service
 
-- name: [SONARQUBE] Démarrage de Sonar.
+- name: "[SONARQUBE] Démarrage de Sonar."
   shell: /usr/local/sonar/bin/linux-x86-64/sonar.sh start
 
-- name: [SONARQUBE] Check pour voir si Sonar répond.
+- name: "[SONARQUBE] Check pour voir si Sonar répond."
   wait_for:
     port=9000
     delay=1

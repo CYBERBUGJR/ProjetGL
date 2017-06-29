@@ -4,9 +4,3 @@ ripper:
         - { target: 'mysql', ports: '3306:3306' }
         - { target: 'sonarqube', ports: '9000:9000' }
         - { target: 'git', ports: '443:443' }
-
-www:
-    keysize: 1024
-
-mariadb:
-    root_pass: y0loMy5QLisd3aD

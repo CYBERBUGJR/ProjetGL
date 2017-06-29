@@ -1,0 +1,26 @@
+#/usr/bin/env bash
+echo -e "\e[31m  .--.      .--.      .--.      .--.      .--.
+\e[36m:::::.\e[31m\ \e[36m:::::::.\e[31m\ \e[36m:::::::.\e[31m\ \e[36m:::::::.\e[31m\ \e[36m::::::::.
+\e[31m       '--'      '--'      '--'      '--'"
+echo -e "\e[31m" ; figlet -f slant "  Reaper"
+echo -e "\n"
+echo -e "\e[31m  .--.      .--.      .--.      .--.      .--.
+\e[36m:::::.\e[31m\ \e[36m:::::::.\e[31m\ \e[36m:::::::.\e[31m\ \e[36m:::::::.\e[31m\ \e[36m::::::::.
+\e[31m       '--'      '--'      '--'      '--'"
+echo -e " \e[31m\e[4m######### DEPLOIEMENT DOCKER #############
+\e[1m\e[94mBenjamin CALVET - Jonathan BENHAMEL\e[0m\n"
+pushd . > /dev/null
+ansible-playbook site.yml "$@" &
+pid=$!
+spin='-\|/_'
+i=0
+date1=`date +%s`
+while kill -0 $pid 2>/dev/null
+do
+  i=$(( (i+1) %4 ))
+  timer="$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)"
+  printf "\r ${timer} ${spin:$i:1} \r"
+  sleep .05
+done
+pkill ansible
+popd > /dev/null

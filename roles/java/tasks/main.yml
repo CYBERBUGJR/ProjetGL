@@ -1,4 +1,12 @@
 ---
-- name: Installing Java.
+
+# - name: "[DEP] [JAVA] Ajout des backports pour Java 8."
+#   shell: echo 'deb-src http://debian.univ-lorraine.fr/debian/ jessie-backports main' >> /etc/apt/sources.list
+#
+#
+
+#Sous Debian 8.X Java 8 n'est pas disponible dans les repos stable, il faut passer en backports.
+- name: "[DEP] [JAVA] Installation de Java 7."
   apt:
       name=openjdk-7-jre
+      force=yes

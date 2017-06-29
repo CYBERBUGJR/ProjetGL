@@ -1,36 +1,57 @@
----
-- name: " [GIT] Téléchargement paquet git-core."
-  apt:
-    update_cache=yes
-   	name=git-core
-   	state=present
 
 - name: "[GIT] Ajout de l'utilisateur git."
   user:
     name=git
     shell=/usr/bin/git-shell
     home=/srv/git
-- name: "[GIT] Envoi des clés des utilisateurs"
-  template:
-    src=keys.j2
-    dest=/opt/git/keys
-    owner=git
-    group=git
-    mode="u=rw,g=rw,o=rw"
 
-- name: "[GIT] Ajout des clés des utilisateurs dans authorized-keys"
-  authorized_key:
-    user=git
-    state=present
-    key="{{ lookup('file', '/opt/git/keys') }}"
-- name:  "[GIT] Création répertoire."
+- name: "[GIT]  Installation des paquets."
+  apt:
+    name=git
+    force=yes
+- name: "[GIT]  Installation des paquets."
+  apt:
+    name=apache2
+    force=yes
+
+- name: "[GIT] Création répertoire GIT"
   file:
-    path=/opt/git/repository
+    path=/var/www/git/
     state=directory
 
+- name: "[GIT] création répertoire repository"
+  file:
+    path=/var/www/git/projetgl.git
+    state=directory
+    owner=www-data
+    group=www-data
 
-- name:  "[GIT] Création de la repository."
-  command: git init --bare
-    args=
-      chdir=/opt/git/repository
-      creates=/opt/git/repository/HEAD
+- name: "[GIT] Initialisation de la repository"
+  command: chdir=/var/www/git/projetgl.git/ git --bare init
+
+- name: "[GIT] Mise à jour serveur GIT"
+  command: chdir=/var/www/git/projetgl.git/ git update-server-info
+
+- name: "[GIT] Actication modules fav dans apache2"
+  apache2_module:
+    name=dav
+    state=present
+
+- name: "[GIT] Activation de fav_fs dans apache2"
+  apache2_module:
+    name=dav_fs
+    state=present
+
+- name: "[GIT] Copie de la conf"
+  template:
+    src=git.conf.j2
+    dest=/etc/apache2/sites-enabled/git.conf
+- name: "[GIT] Ajout de l'utilisateur projetgl au htpasswd"
+  template:
+    src=passwd.git.j2
+    dest=/etc/apache2/passwd.git
+
+- name: "[GIT] redémarage de APACHE2"
+  service:
+    name=apache2
+    state=restarted

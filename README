@@ -1,0 +1,4 @@
+Le Script Deploy permet d'activer le playbook reaper, celui-ci va installer docker et configurer des conteneurs sur la machine distante.
+Reaper va ensuite déployer dans chaque container un playbook correspondant au role du container.
+
+

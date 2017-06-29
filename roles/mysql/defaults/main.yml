@@ -1,4 +1,4 @@
 ---
 mysql:
-    root_pass: y0loMy5QLisd3aD
+    root_pass: root
     url: "https://dev.mysql.com/get/mysql-apt-config_0.7.3-1_all.deb"
